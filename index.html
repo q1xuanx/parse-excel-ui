@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Info Manager</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -9,69 +10,88 @@
     />
     <style>
       body {
-        background-color: #f8fbff;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f9ff;
       }
       .navbar {
-        background: linear-gradient(90deg, #007bff, #0056b3);
+        background-color: #007bff;
       }
       .navbar-brand {
         color: white !important;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-      }
-      .navbar-brand i {
-        margin-right: 8px;
+        font-weight: 600;
       }
       .card {
         border-radius: 12px;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1rem;
       }
       .btn-custom {
         background-color: #007bff;
         color: white;
         border-radius: 8px;
-        transition: 0.3s;
+        transition: background-color 0.2s; /* Thêm transition cho mượt mà hơn */
       }
       .btn-custom:hover {
         background-color: #0056b3;
       }
-      .table thead {
-        background-color: #007bff;
-        color: white;
-      }
-      .table-hover tbody tr:hover {
-        background-color: #eef5ff;
-      }
-      .form-label {
-        font-weight: 500;
-      }
-      .badge-age {
-        background-color: #6c63ff;
-        font-size: 0.85rem;
+
+      /* Responsive table → đổi sang card khi màn hình nhỏ */
+      @media (max-width: 768px) {
+        /* Đổi thứ tự: Table lên trước Form trên mobile (UX tốt hơn) */
+        .order-md-2 {
+          order: 2; /* Form */
+        }
+        .order-md-1 {
+          order: 1; /* Table */
+        }
+
+        table thead {
+          display: none;
+        }
+        table,
+        table tbody,
+        table tr,
+        table td {
+          display: block;
+          width: 100%;
+        }
+        table tr {
+          margin-bottom: 1rem;
+          border: 1px solid #dee2e6;
+          border-radius: 8px;
+          padding: 0.75rem;
+          background: white;
+        }
+        table td {
+          text-align: left;
+          padding: 0.25rem 0;
+          border: none;
+        }
+        table td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: #007bff;
+          display: block;
+          margin-bottom: 2px;
+        }
+        /* Đảm bảo table container không có padding/margin thừa */
+        .table-responsive {
+          border: none;
+        }
       }
     </style>
   </head>
   <body>
-    <!-- Navbar -->
     <nav class="navbar">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-          <i class="bi bi-mortarboard"></i> Student Manager
-        </a>
+        <a class="navbar-brand" href="#">Student Manager</a>
       </div>
     </nav>
 
     <div class="container mt-4">
-      <div class="row g-4">
-        <!-- Input form -->
-        <div class="col-md-4">
-          <div class="card p-4">
-            <h5 class="mb-3 text-primary border-bottom pb-2">
-              <i class="bi bi-person-plus"></i> Thêm học sinh
-            </h5>
+      <div class="row">
+        <div class="col-md-4 order-md-2">
+          <div class="card p-3 sticky-md-top" style="top: 1rem">
+            <h5 class="mb-3 text-primary">Thêm học sinh</h5>
             <form id="studentForm">
               <div class="mb-3">
                 <label class="form-label">Tên học sinh</label>
@@ -79,7 +99,6 @@
                   type="text"
                   id="nameStudent"
                   class="form-control"
-                  placeholder="Nguyễn Văn A"
                   required
                 />
               </div>
@@ -89,8 +108,6 @@
                   type="number"
                   id="ageStudent"
                   class="form-control"
-                  min="1"
-                  placeholder="10"
                   required
                 />
               </div>
@@ -100,7 +117,6 @@
                   type="text"
                   id="nameParent"
                   class="form-control"
-                  placeholder="Nguyễn Văn B"
                   required
                 />
               </div>
@@ -110,37 +126,30 @@
                   type="text"
                   id="phoneNumber"
                   class="form-control"
-                  placeholder="0123456789"
                   required
                 />
               </div>
               <button type="submit" class="btn btn-custom w-100">
-                <i class="bi bi-plus-circle"></i> Thêm học sinh
+                Thêm học sinh
               </button>
             </form>
-            <div id="responseMessage" class="mt-3"></div>
+            <div id="responseMessage" class="mt-2"></div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="col-md-8">
-          <div class="card p-4">
+        <div class="col-md-8 order-md-1">
+          <div class="card p-3">
             <div
-              class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2"
+              class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2"
             >
-              <h5 class="text-primary mb-0">
-                <i class="bi bi-people"></i> Danh sách học sinh
-              </h5>
+              <h5 class="text-primary mb-0">Danh sách học sinh</h5>
               <button class="btn btn-success btn-sm" onclick="exportExcel()">
-                <i class="bi bi-file-earmark-excel"></i> Export Excel
+                Export Excel
               </button>
             </div>
             <div class="table-responsive">
-              <table
-                class="table table-bordered table-hover align-middle text-center"
-                id="studentTable"
-              >
-                <thead>
+              <table class="table table-bordered table-hover" id="studentTable">
+                <thead class="table-primary">
                   <tr>
                     <th>Tên học sinh</th>
                     <th>Tuổi</th>
@@ -148,36 +157,32 @@
                     <th>Số điện thoại</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <!-- data render here -->
-                </tbody>
+                <tbody></tbody>
               </table>
+              <div
+                id="noDataMessage"
+                class="text-center text-muted py-3 d-none"
+              >
+                Chưa có học sinh nào. Hãy thêm học sinh mới!
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bootstrap Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-
     <script>
       const apiBase = "https://5a6eb32ec1f3.ngrok-free.app/api/v1";
 
-      // Wrapper fetch có kèm header ngrok
       async function apiFetch(url, options = {}) {
         options.headers = {
           ...(options.headers || {}),
           "Content-Type": "application/json",
           "ngrok-skip-browser-warning": "true",
         };
-        return await fetch(url, options);
+        return fetch(url, options);
       }
 
-      // Load students on page load
       document.addEventListener("DOMContentLoaded", loadStudents);
 
       async function loadStudents() {
@@ -193,24 +198,30 @@
           }
 
           const tbody = document.querySelector("#studentTable tbody");
+          const noDataMessage = document.getElementById("noDataMessage");
           tbody.innerHTML = "";
 
           const students = data.result || data;
-          students.forEach((s) => {
-            const row = `<tr>
-              <td>${s.nameStudent}</td>
-              <td><span class="badge badge-age">${s.ageStudent}</span></td>
-              <td>${s.nameParent}</td>
-              <td>${s.phoneNumber}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-          });
+
+          if (students && students.length > 0) {
+            students.forEach((s) => {
+              const row = `<tr>
+                  <td data-label="Tên học sinh">${s.nameStudent}</td>
+                  <td data-label="Tuổi">${s.ageStudent}</td>
+                  <td data-label="Tên phụ huynh">${s.nameParent}</td>
+                  <td data-label="Số điện thoại">${s.phoneNumber}</td>
+                </tr>`;
+              tbody.innerHTML += row;
+            });
+            noDataMessage.classList.add("d-none");
+          } else {
+            noDataMessage.classList.remove("d-none");
+          }
         } catch (err) {
           console.error("Error loading students:", err);
         }
       }
 
-      // Handle form submit
       document
         .getElementById("studentForm")
         .addEventListener("submit", async function (e) {
@@ -222,43 +233,79 @@
             phoneNumber: document.getElementById("phoneNumber").value,
           };
 
+          const submitButton = this.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          submitButton.textContent = "Đang xử lý...";
+          const responseMessage = document.getElementById("responseMessage");
+          responseMessage.innerHTML = "";
+
           try {
             const res = await apiFetch(apiBase + "/add-student", {
               method: "POST",
               body: JSON.stringify(student),
             });
-            if (!res.ok) throw new Error("HTTP " + res.status);
+
             const data = await res.json();
 
-            document.getElementById("responseMessage").innerHTML = `
-            <div class="alert alert-success">
-              ${data.message}${data.time ? " - " + data.time : ""}
-            </div>`;
+            if (!res.ok) {
+              throw new Error(data.message || `Lỗi HTTP ${res.status}`);
+            }
+
+            responseMessage.innerHTML = `
+              <div class="alert alert-success">
+                ${data.message}${data.time ? " - " + data.time : ""}
+              </div>`;
             loadStudents();
             this.reset();
           } catch (err) {
-            document.getElementById("responseMessage").innerHTML = `
-            <div class="alert alert-danger">Thêm thất bại: ${err.message}</div>`;
+            responseMessage.innerHTML = `
+              <div class="alert alert-danger">Thêm thất bại: ${err.message}</div>`;
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Thêm học sinh";
+            // Tự động xóa thông báo sau 5 giây
+            setTimeout(() => {
+              responseMessage.innerHTML = "";
+            }, 5000);
           }
         });
 
-      // Export excel
       async function exportExcel() {
+        const exportButton = document.querySelector(".btn-success.btn-sm");
+        exportButton.disabled = true;
+        exportButton.textContent = "Đang xuất...";
+
         try {
           const res = await apiFetch(apiBase + "/make-excel", {
             method: "POST",
           });
+
+          if (!res.ok) throw new Error(`Lỗi HTTP ${res.status}`);
+
           const blob = await res.blob();
           const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "students.xlsx";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+
+          const isSafari = /^((?!chrome|android).)*safari/i.test(
+            navigator.userAgent
+          );
+          if (isSafari) {
+            window.open(url, "_blank");
+          } else {
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "students.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+          }
+
           loadStudents();
         } catch (err) {
           console.error("Export error:", err);
+        } finally {
+          exportButton.disabled = false;
+          exportButton.textContent = "Export Excel";
         }
       }
     </script>
