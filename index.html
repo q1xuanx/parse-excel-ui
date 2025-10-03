@@ -275,13 +275,12 @@
         const originalText = exportButton.textContent;
         const responseMessage = document.getElementById("responseMessage");
 
-        // 1. Khóa nút và hiển thị trạng thái
+        // Khóa nút và hiển thị trạng thái
         exportButton.disabled = true;
         exportButton.textContent = "Đang xuất...";
         responseMessage.innerHTML = "";
 
         try {
-          // 2. Gọi API POST để tạo file và xóa dữ liệu (BẮT BUỘC)
           const res = await apiFetch(apiBase + "/make-excel", {
             method: "POST",
           });
@@ -299,36 +298,38 @@
           const url = window.URL.createObjectURL(blob);
           const filename = "students.xlsx";
 
-          // --- LOGIC TẢI FILE: Tối ưu cho mọi trình duyệt ---
-
-          // Tạo thẻ <a> ảo để kích hoạt download
+          // Logic tải file
           const a = document.createElement("a");
           a.href = url;
           a.download = filename;
 
-          // Kích hoạt click
           document.body.appendChild(a);
-          a.click();
+          a.click(); // Kích hoạt pop-up trên iOS/Safari
 
-          // Dọn dẹp
           a.remove();
           window.URL.revokeObjectURL(url);
 
-          // 3. Load lại danh sách học sinh (để hiển thị dữ liệu đã bị xóa)
+          // Load lại danh sách học sinh
           await loadStudents();
 
-          // 4. Hiển thị thông báo thành công
+          // Cập nhật: Thông báo rõ ràng hơn cho iOS
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+          let successMessage = `Đã xuất file ${filename} thành công!`;
+          if (isIOS) {
+            successMessage += ` Vui lòng chấp nhận/tải file trong cửa sổ bật lên (pop-up) vừa xuất hiện.`;
+          }
+
           responseMessage.innerHTML = `
-            <div class="alert alert-success mt-2">Đã xuất file ${filename} thành công!</div>`;
-          setTimeout(() => (responseMessage.innerHTML = ""), 5000);
+            <div class="alert alert-success mt-2">${successMessage}</div>`;
+          setTimeout(() => (responseMessage.innerHTML = ""), 7000); // Tăng thời gian hiển thị
         } catch (err) {
           console.error("Lỗi Export:", err);
-          // Hiển thị lỗi ngay trên giao diện
           responseMessage.innerHTML = `
-            <div class="alert alert-danger mt-2">Xuất file thất bại: ${err.message}. (Lưu ý: Nếu dùng Safari, hãy đảm bảo bạn không bị chặn pop-up).</div>`;
+            <div class="alert alert-danger mt-2">Xuất file thất bại: ${err.message}. Vui lòng thử lại.</div>`;
           setTimeout(() => (responseMessage.innerHTML = ""), 7000);
         } finally {
-          // 5. Luôn khôi phục trạng thái nút bấm
+          // Luôn khôi phục trạng thái nút bấm
           exportButton.disabled = false;
           exportButton.textContent = originalText;
         }
