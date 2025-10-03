@@ -315,7 +315,7 @@
           window.URL.revokeObjectURL(url);
 
           // 3. Load lại danh sách học sinh (để hiển thị dữ liệu đã bị xóa)
-          loadStudents();
+          await loadStudents();
 
           // 4. Hiển thị thông báo thành công
           responseMessage.innerHTML = `
