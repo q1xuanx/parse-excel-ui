@@ -272,52 +272,65 @@
 
       async function exportExcel() {
         const exportButton = document.querySelector(".btn-success.btn-sm");
-        // Lấy nội dung gốc của nút
         const originalText = exportButton.textContent;
         const responseMessage = document.getElementById("responseMessage");
 
         // 1. Khóa nút và hiển thị trạng thái
         exportButton.disabled = true;
         exportButton.textContent = "Đang xuất...";
-        responseMessage.innerHTML = ""; // Xóa thông báo cũ
+        responseMessage.innerHTML = "";
 
         try {
-          // --- CÁCH TẢI FILE TRỰC TIẾP QUA URL (Giải pháp tốt nhất cho iOS/Safari) ---
+          // 2. Gọi API POST để tạo file và xóa dữ liệu (BẮT BUỘC)
+          const res = await apiFetch(apiBase + "/make-excel", {
+            method: "POST",
+          });
 
-          // Tạo một thẻ <a> ảo để kích hoạt download trực tiếp
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(
+              `Tạo file thất bại. HTTP: ${
+                res.status
+              }. Chi tiết: ${errorText.substring(0, 50)}...`
+            );
+          }
+
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const filename = "students.xlsx";
+
+          // --- LOGIC TẢI FILE: Tối ưu cho mọi trình duyệt ---
+
+          // Tạo thẻ <a> ảo để kích hoạt download
           const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
 
-          // Gán href là URL API POST /make-excel
-          // Mặc dù API là POST, nhưng việc gán trực tiếp vào href sẽ gửi request GET
-          // và yêu cầu server trả về file. (Đây là điểm mấu chốt để iOS/Safari không chặn)
-          a.href = apiBase + "/make-excel";
-          a.download = "students.xlsx";
-
+          // Kích hoạt click
           document.body.appendChild(a);
-          a.click(); // Kích hoạt tải xuống
-          a.remove();
+          a.click();
 
-          // 2. Load lại danh sách học sinh để cập nhật giao diện
-          // Việc này được gọi ngay sau khi kích hoạt tải file.
+          // Dọn dẹp
+          a.remove();
+          window.URL.revokeObjectURL(url);
+
+          // 3. Load lại danh sách học sinh (để hiển thị dữ liệu đã bị xóa)
           loadStudents();
 
-          // 3. Hiển thị thông báo thành công
+          // 4. Hiển thị thông báo thành công
           responseMessage.innerHTML = `
-            <div class="alert alert-success mt-2">Yêu cầu xuất file đã được gửi đi. File sẽ tải xuống ngay.</div>`;
+            <div class="alert alert-success mt-2">Đã xuất file ${filename} thành công!</div>`;
           setTimeout(() => (responseMessage.innerHTML = ""), 5000);
         } catch (err) {
           console.error("Lỗi Export:", err);
           // Hiển thị lỗi ngay trên giao diện
           responseMessage.innerHTML = `
-            <div class="alert alert-danger mt-2">Xuất file thất bại: ${err.message}</div>`;
+            <div class="alert alert-danger mt-2">Xuất file thất bại: ${err.message}. (Lưu ý: Nếu dùng Safari, hãy đảm bảo bạn không bị chặn pop-up).</div>`;
           setTimeout(() => (responseMessage.innerHTML = ""), 7000);
         } finally {
-          // 4. Luôn khôi phục trạng thái nút bấm
-          // Thêm một độ trễ nhỏ để người dùng kịp thấy trạng thái "Đang xuất..."
-          setTimeout(() => {
-            exportButton.disabled = false;
-            exportButton.textContent = originalText;
-          }, 1500);
+          // 5. Luôn khôi phục trạng thái nút bấm
+          exportButton.disabled = false;
+          exportButton.textContent = originalText;
         }
       }
     </script>
